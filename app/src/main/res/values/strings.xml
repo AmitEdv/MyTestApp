@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Videos Display App</string>
+    <string name="button_text">Play Ad</string>
 </resources>
