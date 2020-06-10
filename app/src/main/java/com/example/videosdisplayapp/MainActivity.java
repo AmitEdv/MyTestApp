@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 
 import com.ironsource.mediationsdk.IronSource;
-import com.ironsource.mediationsdk.integration.IntegrationHelper;
 import com.ironsource.mediationsdk.logger.IronSourceError;
 import com.ironsource.mediationsdk.model.Placement;
 import com.ironsource.mediationsdk.sdk.InterstitialListener;
@@ -16,14 +15,28 @@ import com.ironsource.mediationsdk.sdk.OfferwallListener;
 import com.ironsource.mediationsdk.sdk.RewardedVideoListener;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = "AppCompatActivity";
+    private final String TAG = "MainActivity";
+    private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
+    private final static String PLACEMENT_NAME = null;
+    private final static int LIMIT_AMOUNT = 4;
+    //////////////////////////////
+    //AMIT
+    private final static int LIMIT_TIMEFRAME_HOURS = 4; //12;
+    //////////////////////////////
+    private final static int FIRST_VIDEO = 1;
+    private final static int MILLIS_IN_SECOND = 1000;
+    private final static int SECONDS_IN_MINUTE = 60;
+    private final static int MINUTES_IN_HOUR = 60;
 
     private Button mPlayAdBtn;
 
     private AppRewardedVideoListener mRewardedVideoListener;
     private InterstitialListener mInterstitialListener;
     private OfferwallListener mOfferwallListener;
-    private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
+    private int mRewardAmount = 0;
+    private int mNumOfVidPlayedInLimitTime = 0;
+    private long mEndTimeOfLimitTimeframe = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,19 +67,52 @@ public class MainActivity extends AppCompatActivity {
         IronSource.onPause(this);
     }
 
-    public void PlayAdBtn_OnClick(View view) {
+    public void playAdBtnOnClick(View view) {
         Log.d(TAG, "PlayAdB7tn_OnClick: called");
-        IronSource.showRewardedVideo();
+        IronSource.showRewardedVideo(PLACEMENT_NAME);
+        mNumOfVidPlayedInLimitTime++;
+        if (mNumOfVidPlayedInLimitTime == FIRST_VIDEO) {
+            mEndTimeOfLimitTimeframe = System.currentTimeMillis()
+                    //////////////////////////////
+                    //AMIT
+                                       + (LIMIT_TIMEFRAME_HOURS * /*MINUTES_IN_HOUR * */ SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
+                    //////////////////////////////
+        }
+
+        Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
+    }
+
+    private boolean didLimitTimeframePassed() {
+        if (mEndTimeOfLimitTimeframe == 0) {
+            return false;
+        }
+
+        final long currTime = System.currentTimeMillis();
+        Log.d(TAG, "didLimitTimeframePassed: endTime=" + mEndTimeOfLimitTimeframe + ", currTime=" + currTime);
+        return (mEndTimeOfLimitTimeframe < currTime);
+    }
+
+    private boolean isRewardedVideoPlacementAllowed() {
+        if (didLimitTimeframePassed()) {
+            Log.d(TAG, "isRewardedVideoPlacementAllowed: time passed");
+            mNumOfVidPlayedInLimitTime = 0;
+        }
+
+        final boolean isAllowed = mNumOfVidPlayedInLimitTime < LIMIT_AMOUNT;
+        Log.d(TAG, "isRewardedVideoPlacementAllowed: is allowed=" + isAllowed);
+        return isAllowed;
     }
 
     //TODO - what's the best method to act?
-    private void updateByRewardedVideoAvailability(final boolean availability) {
+    private void updateByRewardedVideoAvailability(boolean availability) {
         Log.d(TAG, "updateByRewardedVideoAvailability");
+        final boolean enableVideo = (availability && isRewardedVideoPlacementAllowed());
+
         runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                mPlayAdBtn.setEnabled(availability);
+                mPlayAdBtn.setEnabled(enableVideo);
             }
         });
     }
@@ -109,17 +155,18 @@ public class MainActivity extends AppCompatActivity {
 
             String rewardName = placement.getRewardName();
             int rewardAmount = placement.getRewardAmount();
-            Log.i(TAG, "onRewardedVideoAdRewarded: reward name = " + rewardName + ", amount = " + rewardAmount);
+            mRewardAmount += rewardAmount;
+            Log.i(TAG, "onRewardedVideoAdRewarded: reward name=" + rewardName + ", amount=" + rewardAmount);
+            Log.d(TAG, "onRewardedVideoAdRewarded: accumulated amount=" + mRewardAmount);
         }
 
         @Override
         public void onRewardedVideoAdShowFailed(IronSourceError ironSourceError) {
             Log.d(TAG, "onRewardedVideoAdShowFailed: called");
-            //Retrieve details from a SupersonicError object.
             int errorCode =  ironSourceError.getErrorCode();
             String errorMessage = ironSourceError.getErrorMessage();
             if (errorCode == ironSourceError.ERROR_CODE_GENERIC){
-                //Write a Handler for specific error's.
+                //TODO - Write a Handler for specific error's.
             }
         }
 
