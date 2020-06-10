@@ -3,6 +3,7 @@ package com.example.videosdisplayapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -22,13 +23,21 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
+    private final static String SHARED_PREF_STORAGE_NAME = "AdDisplayAppS";
+    private final static String SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL = "shouldDisplayInterstitial";
     private final static String PLACEMENT_NAME = null;
-    private final static int LIMIT_AMOUNT = 4;
-    private final static int LIMIT_TIMEFRAME_HOURS = 12;
     private final static int FIRST_VIDEO = 1;
-    private final static int MILLIS_IN_SECOND = 1000;
+    ///////////////////////////////
+    //AMIT
+//    private final static int LIMIT_AMOUNT = 4;
+//    private final static int LIMIT_TIMEFRAME_HOURS = 12;
+//    private final static int MINUTES_IN_HOUR = 60;
+    private final static int LIMIT_AMOUNT = 2;
+    private final static int LIMIT_TIMEFRAME_HOURS = 1;
+    private final static int MINUTES_IN_HOUR = 2;
+    ////////////////////////////////
     private final static int SECONDS_IN_MINUTE = 60;
-    private final static int MINUTES_IN_HOUR = 60;
+    private final static int MILLIS_IN_SECOND = 1000;
 
     private Button mPlayAdBtn;
     private TextView mRewardsTv;
@@ -52,14 +61,19 @@ public class MainActivity extends AppCompatActivity {
         IronSource.setInterstitialListener(mInterstitialListener);
 
         IronSource.init(this, IRON_SOURCE_APP_KEY);
-        //TODO - remove / what's the best way to compile out DEBUG code on production?
-//        IntegrationHelper.validateIntegration(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart: called");
 
+        SharedPreferences sp = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_APPEND);
+        mShouldDisplayInterstitialAd = sp.getBoolean(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, false);
+        Log.d(TAG, "onStart: SharedPref: "
+                    + ", mShouldDisplayInterstitialAd=" + mShouldDisplayInterstitialAd);
+
+        showInterstitialAd();
     }
 
     @Override
@@ -72,6 +86,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         IronSource.onPause(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop: called");
+
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, mShouldDisplayInterstitialAd);
+        editor.commit();
     }
 
     public void nextActivityBtnOnClick(View view) {
