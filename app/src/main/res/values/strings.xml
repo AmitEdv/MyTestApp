@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Videos Display App</string>
-    <string name="button_text">Play Ad</string>
+
+    <!--  MainActivity  -->
+    <string name="play_ad_btn">Play Ad</string>
+    <string name="next_activity_btn">Go to next activity</string>
+
+    <!--  AnotherActivity  -->
+    <string name="main_txt">Welcome to the second activity!</string>
 </resources>

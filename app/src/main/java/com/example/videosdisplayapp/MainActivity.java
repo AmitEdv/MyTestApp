@@ -2,6 +2,7 @@ package com.example.videosdisplayapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -65,6 +66,14 @@ public class MainActivity extends AppCompatActivity {
         IronSource.onPause(this);
     }
 
+    public void nextActivityBtnOnClick(View view) {
+        Log.d(TAG, "nextActivityBtnOnClick: called");
+
+        showInterstitialAd();
+        Intent intent = new Intent(this, AnotherActivity.class);
+        startActivity(intent);
+    }
+
     public void playAdBtnOnClick(View view) {
         Log.d(TAG, "PlayAdB7tn_OnClick: called");
 
@@ -88,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showInterstitialAd() {
-        if (IronSource.isInterstitialReady()) {
+        if (mShouldDisplayInterstitialAd && IronSource.isInterstitialReady()) {
             IronSource.showInterstitial(PLACEMENT_NAME);
         }
     }

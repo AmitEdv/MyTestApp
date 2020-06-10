@@ -21,10 +21,21 @@
         android:id="@+id/play_ad_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_text"
+        android:text="@string/play_ad_btn"
         android:onClick="playAdBtnOnClick"
         android:enabled="false"
         app:layout_constraintTop_toBottomOf="@+id/title_tv"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+    <Button
+        android:id="@+id/next_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/next_activity_btn"
+        android:onClick="nextActivityBtnOnClick"
+        app:layout_constraintTop_toBottomOf="@+id/play_ad_btn"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         />
