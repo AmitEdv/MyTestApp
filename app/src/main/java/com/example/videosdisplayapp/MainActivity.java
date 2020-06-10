@@ -32,11 +32,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mPlayAdBtn;
     private TextView mRewardsTv;
-    String mRewardsTxt;
 
-    private AppRewardedVideoListener mRewardedVideoListener = new AppRewardedVideoListener();
-    private InterstitialListener mInterstitialListener = new AppInterstitialListener();
-    private OfferwallListener mOfferwallListener;
+    private final AppRewardedVideoListener mRewardedVideoListener = new AppRewardedVideoListener();
+    private final InterstitialListener mInterstitialListener = new AppInterstitialListener();
     private int mRewardAmount = 0;
     private int mNumOfVidPlayedInLimitTime = 0;
     private boolean mShouldDisplayInterstitialAd = false;
@@ -52,11 +50,16 @@ public class MainActivity extends AppCompatActivity {
 
         IronSource.setRewardedVideoListener(mRewardedVideoListener);
         IronSource.setInterstitialListener(mInterstitialListener);
-        IronSource.setOfferwallListener(mOfferwallListener);
 
         IronSource.init(this, IRON_SOURCE_APP_KEY);
         //TODO - remove / what's the best way to compile out DEBUG code on production?
 //        IntegrationHelper.validateIntegration(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
     }
 
     @Override
@@ -230,14 +233,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onRewardedVideoAdShowFailed: called");
             int errorCode =  ironSourceError.getErrorCode();
             String errorMessage = ironSourceError.getErrorMessage();
-            if (errorCode == ironSourceError.ERROR_CODE_GENERIC){
-                //TODO - Write a Handler for specific error's.
-            }
+            Log.e(TAG, "onRewardedVideoAdShowFailed: " + errorMessage);
         }
 
         @Override
         public void onRewardedVideoAdClicked(Placement placement) {
 
         }
-    };
+    }
 }
