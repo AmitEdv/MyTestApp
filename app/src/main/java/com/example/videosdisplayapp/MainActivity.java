@@ -14,6 +14,9 @@ import com.ironsource.mediationsdk.sdk.InterstitialListener;
 import com.ironsource.mediationsdk.sdk.OfferwallListener;
 import com.ironsource.mediationsdk.sdk.RewardedVideoListener;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
@@ -35,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private OfferwallListener mOfferwallListener;
     private int mRewardAmount = 0;
     private int mNumOfVidPlayedInLimitTime = 0;
-    private long mEndTimeOfLimitTimeframe = 0;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,35 +70,30 @@ public class MainActivity extends AppCompatActivity {
 
     public void playAdBtnOnClick(View view) {
         Log.d(TAG, "PlayAdB7tn_OnClick: called");
+
         IronSource.showRewardedVideo(PLACEMENT_NAME);
         mNumOfVidPlayedInLimitTime++;
         if (mNumOfVidPlayedInLimitTime == FIRST_VIDEO) {
-            mEndTimeOfLimitTimeframe = System.currentTimeMillis()
-                    //////////////////////////////
-                    //AMIT
-                                       + (LIMIT_TIMEFRAME_HOURS * /*MINUTES_IN_HOUR * */ SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
-                    //////////////////////////////
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    onLimitTimeframePassed();
+                }
+                ////////////////////////////////
+                //AMIT
+            }, LIMIT_TIMEFRAME_HOURS * /*MINUTES_IN_HOUR * */ SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
+                /////////////////////////////////
         }
 
         Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
     }
 
-    private boolean didLimitTimeframePassed() {
-        if (mEndTimeOfLimitTimeframe == 0) {
-            return false;
-        }
-
-        final long currTime = System.currentTimeMillis();
-        Log.d(TAG, "didLimitTimeframePassed: endTime=" + mEndTimeOfLimitTimeframe + ", currTime=" + currTime);
-        return (mEndTimeOfLimitTimeframe < currTime);
+    private void onLimitTimeframePassed() {
+        mNumOfVidPlayedInLimitTime = 0;
+        updateByRewardedVideoAvailability(IronSource.isRewardedVideoAvailable());
     }
 
     private boolean isRewardedVideoPlacementAllowed() {
-        if (didLimitTimeframePassed()) {
-            Log.d(TAG, "isRewardedVideoPlacementAllowed: time passed");
-            mNumOfVidPlayedInLimitTime = 0;
-        }
-
         final boolean isAllowed = mNumOfVidPlayedInLimitTime < LIMIT_AMOUNT;
         Log.d(TAG, "isRewardedVideoPlacementAllowed: is allowed=" + isAllowed);
         return isAllowed;
