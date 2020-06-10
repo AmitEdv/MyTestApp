@@ -30,11 +30,12 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mPlayAdBtn;
 
-    private AppRewardedVideoListener mRewardedVideoListener;
-    private InterstitialListener mInterstitialListener;
+    private AppRewardedVideoListener mRewardedVideoListener = new AppRewardedVideoListener();
+    private InterstitialListener mInterstitialListener = new AppInterstitialListener();
     private OfferwallListener mOfferwallListener;
     private int mRewardAmount = 0;
     private int mNumOfVidPlayedInLimitTime = 0;
+    private boolean mShouldDisplayInterstitialAd = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
         mPlayAdBtn = (Button) findViewById(R.id.play_ad_btn);
 
-        mRewardedVideoListener = new AppRewardedVideoListener();
         IronSource.setRewardedVideoListener(mRewardedVideoListener);
         IronSource.setInterstitialListener(mInterstitialListener);
         IronSource.setOfferwallListener(mOfferwallListener);
@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         IronSource.showRewardedVideo(PLACEMENT_NAME);
         mNumOfVidPlayedInLimitTime++;
+        Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
         if (mNumOfVidPlayedInLimitTime == FIRST_VIDEO) {
             new Timer().schedule(new TimerTask() {
 
@@ -80,7 +81,16 @@ public class MainActivity extends AppCompatActivity {
             }, LIMIT_TIMEFRAME_HOURS * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
         }
 
-        Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
+        if (mNumOfVidPlayedInLimitTime == LIMIT_AMOUNT) {
+            mShouldDisplayInterstitialAd = true;
+            IronSource.loadInterstitial();
+        }
+    }
+
+    private void showInterstitialAd() {
+        if (IronSource.isInterstitialReady()) {
+            IronSource.showInterstitial(PLACEMENT_NAME);
+        }
     }
 
     private void onLimitTimeframePassed() {
@@ -106,6 +116,44 @@ public class MainActivity extends AppCompatActivity {
                 mPlayAdBtn.setEnabled(enableVideo);
             }
         });
+    }
+
+    private class AppInterstitialListener implements InterstitialListener {
+
+        @Override
+        public void onInterstitialAdReady() {
+            Log.d(TAG,"onInterstitialAdReady: called");
+        }
+
+        @Override
+        public void onInterstitialAdLoadFailed(IronSourceError ironSourceError) {
+
+        }
+
+        @Override
+        public void onInterstitialAdOpened() {
+
+        }
+
+        @Override
+        public void onInterstitialAdClosed() {
+
+        }
+
+        @Override
+        public void onInterstitialAdShowSucceeded() {
+            mShouldDisplayInterstitialAd = false;
+        }
+
+        @Override
+        public void onInterstitialAdShowFailed(IronSourceError ironSourceError) {
+
+        }
+
+        @Override
+        public void onInterstitialAdClicked() {
+
+        }
     }
 
      private class AppRewardedVideoListener implements RewardedVideoListener {
