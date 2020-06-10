@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.ironsource.mediationsdk.IronSource;
 import com.ironsource.mediationsdk.logger.IronSourceError;
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private final static int MINUTES_IN_HOUR = 60;
 
     private Button mPlayAdBtn;
+    private TextView mRewardsTv;
+    String mRewardsTxt;
 
     private AppRewardedVideoListener mRewardedVideoListener = new AppRewardedVideoListener();
     private InterstitialListener mInterstitialListener = new AppInterstitialListener();
@@ -44,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mPlayAdBtn = (Button) findViewById(R.id.play_ad_btn);
+        mRewardsTv = (TextView) findViewById(R.id.rewards_title_tv);
+        mRewardsTv.setText(getString(R.string.rewards_txt, mRewardAmount));
 
         IronSource.setRewardedVideoListener(mRewardedVideoListener);
         IronSource.setInterstitialListener(mInterstitialListener);
@@ -127,6 +132,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void onVideoRewarded(int reward) {
+        mRewardAmount += reward;
+        Log.d(TAG, "onRewardedVideoAdRewarded: accumulated amount=" + mRewardAmount);
+
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                mRewardsTv.setText(getString(R.string.rewards_txt, mRewardAmount));
+            }
+        });
+    }
+
     private class AppInterstitialListener implements InterstitialListener {
 
         @Override
@@ -165,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-     private class AppRewardedVideoListener implements RewardedVideoListener {
+    private class AppRewardedVideoListener implements RewardedVideoListener {
 
         @Override
         public void onRewardedVideoAdOpened() {
@@ -203,9 +221,8 @@ public class MainActivity extends AppCompatActivity {
 
             String rewardName = placement.getRewardName();
             int rewardAmount = placement.getRewardAmount();
-            mRewardAmount += rewardAmount;
             Log.i(TAG, "onRewardedVideoAdRewarded: reward name=" + rewardName + ", amount=" + rewardAmount);
-            Log.d(TAG, "onRewardedVideoAdRewarded: accumulated amount=" + mRewardAmount);
+            onVideoRewarded(rewardAmount);
         }
 
         @Override

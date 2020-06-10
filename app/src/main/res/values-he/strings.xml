@@ -1,0 +1,9 @@
+<resources>
+    <!--  MainActivity  -->
+    <string name="rewards_txt">נקודות: d%</string>
+    <string name="play_ad_btn">נגן מודעה</string>
+    <string name="next_activity_btn">עבור למסך הבא</string>
+
+    <!--  AnotherActivity  -->
+    <string name="main_txt">ברוך/ה הבא/ה למסך הנוסף!</string>
+</resources>

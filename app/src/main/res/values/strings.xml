@@ -1,7 +1,8 @@
 <resources>
-    <string name="app_name">Videos Display App</string>
+    <string name="app_name" translatable="false">Videos Display App</string>
 
     <!--  MainActivity  -->
+    <string name="rewards_txt">Rewards: %d</string>
     <string name="play_ad_btn">Play Ad</string>
     <string name="next_activity_btn">Go to next activity</string>
 
