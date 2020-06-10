@@ -22,10 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
     private final static String PLACEMENT_NAME = null;
     private final static int LIMIT_AMOUNT = 4;
-    //////////////////////////////
-    //AMIT
-    private final static int LIMIT_TIMEFRAME_HOURS = 4; //12;
-    //////////////////////////////
+    private final static int LIMIT_TIMEFRAME_HOURS = 12;
     private final static int FIRST_VIDEO = 1;
     private final static int MILLIS_IN_SECOND = 1000;
     private final static int SECONDS_IN_MINUTE = 60;
@@ -75,14 +72,12 @@ public class MainActivity extends AppCompatActivity {
         mNumOfVidPlayedInLimitTime++;
         if (mNumOfVidPlayedInLimitTime == FIRST_VIDEO) {
             new Timer().schedule(new TimerTask() {
+
                 @Override
                 public void run() {
                     onLimitTimeframePassed();
                 }
-                ////////////////////////////////
-                //AMIT
-            }, LIMIT_TIMEFRAME_HOURS * /*MINUTES_IN_HOUR * */ SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
-                /////////////////////////////////
+            }, LIMIT_TIMEFRAME_HOURS * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLIS_IN_SECOND);
         }
 
         Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
