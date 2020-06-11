@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (mNumOfVidPlayedInLimitTime == LIMIT_AMOUNT) {
             mInterstitialAdDisplayState = InterstitialDisplayState.SET_NEXT_FOREGROUND_TO_DISPLAY;
-            IronSource.loadInterstitial();
         }
     }
 
@@ -160,9 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 mInterstitialAdDisplayState = InterstitialDisplayState.DISPLAY_WHEN_BACK_IN_FOREGROUND;
                 break;
             case InterstitialDisplayState.DISPLAY_WHEN_BACK_IN_FOREGROUND:
-                if (IronSource.isInterstitialReady()) {
-                    IronSource.showInterstitial(PLACEMENT_NAME);
-                }
+                IronSource.loadInterstitial();
                 break;
             default:
                 Log.w(TAG, "showInterstitialAd: illegal state=" + mInterstitialAdDisplayState);
@@ -212,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onInterstitialAdReady() {
             Log.d(TAG,"onInterstitialAdReady: called");
+            IronSource.showInterstitial(PLACEMENT_NAME);
         }
 
         @Override
