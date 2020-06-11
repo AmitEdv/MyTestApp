@@ -1,7 +1,9 @@
 package com.example.videosdisplayapp;
 
+import androidx.annotation.IntDef;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -14,14 +16,27 @@ import com.ironsource.mediationsdk.IronSource;
 import com.ironsource.mediationsdk.logger.IronSourceError;
 import com.ironsource.mediationsdk.model.Placement;
 import com.ironsource.mediationsdk.sdk.InterstitialListener;
-import com.ironsource.mediationsdk.sdk.OfferwallListener;
 import com.ironsource.mediationsdk.sdk.RewardedVideoListener;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({InterstitialDisplayState.NO_NEED_TO_DISPLAY,
+            InterstitialDisplayState.SET_NEXT_FOREGROUND_TO_DISPLAY,
+            InterstitialDisplayState.DISPLAY_WHEN_BACK_IN_FOREGROUND})
+    public @interface InterstitialDisplayState
+    {
+        int NO_NEED_TO_DISPLAY = 0;
+        int SET_NEXT_FOREGROUND_TO_DISPLAY = 1;
+        int DISPLAY_WHEN_BACK_IN_FOREGROUND = 2;
+    }
+
     private final static String IRON_SOURCE_APP_KEY = "4ea90fad";
     private final static String SHARED_PREF_STORAGE_NAME = "AdDisplayAppS";
     private final static String SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL = "shouldDisplayInterstitial";
@@ -46,20 +61,21 @@ public class MainActivity extends AppCompatActivity {
     private final InterstitialListener mInterstitialListener = new AppInterstitialListener();
     private int mRewardAmount = 0;
     private int mNumOfVidPlayedInLimitTime = 0;
-    private boolean mShouldDisplayInterstitialAd = false;
+    @InterstitialDisplayState
+    private int mInterstitialAdDisplayState = InterstitialDisplayState.NO_NEED_TO_DISPLAY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mPlayAdBtn = (Button) findViewById(R.id.play_ad_btn);
         mRewardsTv = (TextView) findViewById(R.id.rewards_title_tv);
         mRewardsTv.setText(getString(R.string.rewards_txt, mRewardAmount));
 
+        restoreMembersFromPersistentLocalMemory();
+
         IronSource.setRewardedVideoListener(mRewardedVideoListener);
         IronSource.setInterstitialListener(mInterstitialListener);
-
         IronSource.init(this, IRON_SOURCE_APP_KEY);
     }
 
@@ -67,13 +83,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: called");
-
-        SharedPreferences sp = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_APPEND);
-        mShouldDisplayInterstitialAd = sp.getBoolean(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, false);
-        Log.d(TAG, "onStart: SharedPref: "
-                    + ", mShouldDisplayInterstitialAd=" + mShouldDisplayInterstitialAd);
-
-        showInterstitialAd();
+        determineAndShowInterstitialAdIfNeeded();
     }
 
     @Override
@@ -92,27 +102,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop: called");
-
-        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, mShouldDisplayInterstitialAd);
-        editor.commit();
+        storeMembersInPersistentLocalMemory();
     }
 
     public void nextActivityBtnOnClick(View view) {
         Log.d(TAG, "nextActivityBtnOnClick: called");
 
-        showInterstitialAd();
+        determineAndShowInterstitialAdIfNeeded();
         Intent intent = new Intent(this, AnotherActivity.class);
         startActivity(intent);
     }
 
     public void playAdBtnOnClick(View view) {
-        Log.d(TAG, "PlayAdB7tn_OnClick: called");
+        Log.d(TAG, "playAdBtnOnClick: called");
 
         IronSource.showRewardedVideo(PLACEMENT_NAME);
         mNumOfVidPlayedInLimitTime++;
         Log.d(TAG, "playAdBtnOnClick: mNumOfVidPlayedInLimitTime=" + mNumOfVidPlayedInLimitTime);
+
         if (mNumOfVidPlayedInLimitTime == FIRST_VIDEO) {
             new Timer().schedule(new TimerTask() {
 
@@ -124,14 +131,41 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (mNumOfVidPlayedInLimitTime == LIMIT_AMOUNT) {
-            mShouldDisplayInterstitialAd = true;
+            mInterstitialAdDisplayState = InterstitialDisplayState.SET_NEXT_FOREGROUND_TO_DISPLAY;
             IronSource.loadInterstitial();
         }
     }
 
-    private void showInterstitialAd() {
-        if (mShouldDisplayInterstitialAd && IronSource.isInterstitialReady()) {
-            IronSource.showInterstitial(PLACEMENT_NAME);
+    @SuppressLint("ApplySharedPref")
+    private void storeMembersInPersistentLocalMemory() {
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, mInterstitialAdDisplayState);
+        editor.commit();
+    }
+
+    private void restoreMembersFromPersistentLocalMemory() {
+        SharedPreferences sp = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_APPEND);
+        mInterstitialAdDisplayState = sp.getInt(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, InterstitialDisplayState.NO_NEED_TO_DISPLAY);
+        Log.d(TAG, "onCreate: SharedPref: "
+                + "mInterstitialAdDisplayState=" + mInterstitialAdDisplayState);
+    }
+
+    private void determineAndShowInterstitialAdIfNeeded() {
+        switch (mInterstitialAdDisplayState)
+        {
+            case InterstitialDisplayState.NO_NEED_TO_DISPLAY:
+                break;
+            case InterstitialDisplayState.SET_NEXT_FOREGROUND_TO_DISPLAY:
+                mInterstitialAdDisplayState = InterstitialDisplayState.DISPLAY_WHEN_BACK_IN_FOREGROUND;
+                break;
+            case InterstitialDisplayState.DISPLAY_WHEN_BACK_IN_FOREGROUND:
+                if (IronSource.isInterstitialReady()) {
+                    IronSource.showInterstitial(PLACEMENT_NAME);
+                }
+                break;
+            default:
+                Log.w(TAG, "showInterstitialAd: illegal state=" + mInterstitialAdDisplayState);
         }
     }
 
@@ -197,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onInterstitialAdShowSucceeded() {
-            mShouldDisplayInterstitialAd = false;
+            mInterstitialAdDisplayState = InterstitialDisplayState.NO_NEED_TO_DISPLAY;
         }
 
         @Override
