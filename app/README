@@ -1,0 +1,23 @@
+General Info
+///////////////////
+The App has been developed and tested using:
+Mobile phone: Mi A2 Lite
+Android version: 9
+
+
+Assumptions
+///////////////////
+> "In case the user watches 4 videos, the app should display an interstitial ad in one of the following scenarios",
+    meaning, in case user watches 4 videos during the whole interval of 12 hours, not necessarily in a row.
+> re-watching an ad again does not consider to be another ad play.
+> There might a delay with the interstitial ad for the sake of loading
+
+
+Missing
+///////////////////
+> App OOP architecture
+    View and modules. Including
+    -IronSourceLibraryWrapper
+    -AdvertisingManager
+    -RewardedVideo
+> Data binding for ad display button (enable/disable), and rewards amount.

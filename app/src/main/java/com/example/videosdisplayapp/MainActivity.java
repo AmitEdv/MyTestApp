@@ -174,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
         return isAllowed;
     }
 
-    //TODO - what's the best method to act?
     private void updateByRewardedVideoAvailability(boolean availability) {
         Log.d(TAG, "updateByRewardedVideoAvailability");
         final boolean enableVideo = (availability && isRewardedVideoPlacementAllowed());
