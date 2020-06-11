@@ -42,15 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private final static String SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL = "shouldDisplayInterstitial";
     private final static String PLACEMENT_NAME = null;
     private final static int FIRST_VIDEO = 1;
-    ///////////////////////////////
-    //AMIT
-//    private final static int LIMIT_AMOUNT = 4;
-//    private final static int LIMIT_TIMEFRAME_HOURS = 12;
-//    private final static int MINUTES_IN_HOUR = 60;
-    private final static int LIMIT_AMOUNT = 2;
-    private final static int LIMIT_TIMEFRAME_HOURS = 1;
-    private final static int MINUTES_IN_HOUR = 2;
-    ////////////////////////////////
+    private final static int LIMIT_AMOUNT = 4;
+    private final static int LIMIT_TIMEFRAME_HOURS = 12;
+    private final static int MINUTES_IN_HOUR = 60;
     private final static int SECONDS_IN_MINUTE = 60;
     private final static int MILLIS_IN_SECOND = 1000;
 
@@ -137,6 +131,9 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("ApplySharedPref")
     private void storeMembersInPersistentLocalMemory() {
+        Log.d(TAG, "storeMembersInPersistentLocalMemory: "
+                + "mInterstitialAdDisplayState=" + mInterstitialAdDisplayState);
+
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, mInterstitialAdDisplayState);
@@ -144,9 +141,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void restoreMembersFromPersistentLocalMemory() {
-        SharedPreferences sp = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_APPEND);
+        SharedPreferences sp = getSharedPreferences(SHARED_PREF_STORAGE_NAME, MODE_PRIVATE);
         mInterstitialAdDisplayState = sp.getInt(SHARED_PREF_KEY_SHOULD_DISPLAY_INTERSTITIAL, InterstitialDisplayState.NO_NEED_TO_DISPLAY);
-        Log.d(TAG, "onCreate: SharedPref: "
+        Log.d(TAG, "restoreMembersFromPersistentLocalMemory: "
                 + "mInterstitialAdDisplayState=" + mInterstitialAdDisplayState);
     }
 
